@@ -2,6 +2,9 @@ import json
 import numpy as np
 import scipy.stats as stats
 
+FILENAME = "./context/satirical/satirical_similarities.json"
+OUTPUT_FILENAME = "./context/satirical/satirical_statistics.json"
+
 def load_similarities_from_json(filename):
     with open(filename, "r") as f:
         return json.load(f)
@@ -44,12 +47,11 @@ def save_statistics_to_json(stats_results, filename="similarity_statistics.json"
         json.dump(stats_results, f, indent=4)
 
 # Example usage
-similarities_file = "llama_result/similarities.json"
-similarities = load_similarities_from_json(similarities_file)
+similarities = load_similarities_from_json(FILENAME)
 statistics = compute_statistics(similarities)
 
 # Save results to a JSON file
-save_statistics_to_json(statistics)
+save_statistics_to_json(statistics, filename=OUTPUT_FILENAME)
 
 # Print results
 # for stat in statistics:

@@ -3,6 +3,9 @@ import torch
 import torch.nn.functional as F
 from itertools import combinations
 
+FILENAME = "./context/satirical/satirical_embeddings.json"
+OUTPUT_FILENAME = "./context/satirical/satirical_similarities.json"
+
 def load_embeddings_from_json(filename):
     with open(filename, "r") as f:
         return json.load(f)
@@ -33,11 +36,12 @@ def save_similarities_to_json(results, filename="similarities.json"):
         json.dump(results, f, indent=4)
 
 # Example usage
-filename = "llama_result/embeddings.json"
-embeddings = load_embeddings_from_json(filename)
+filename = FILENAME
+embeddings = load_embeddings_from_json(filename = FILENAME)
 pairwise_cosine_similarities = compute_all_cosine_similarities(embeddings)
+
 # Save results to a JSON file
-save_similarities_to_json(pairwise_cosine_similarities)
+save_similarities_to_json(pairwise_cosine_similarities, filename=OUTPUT_FILENAME)
 
 # Print results
 # for result in pairwise_cosine_similarities:

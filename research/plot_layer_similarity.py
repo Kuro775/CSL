@@ -2,6 +2,9 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
+FILENAME = "./context/satirical/satirical_statistics.json"
+OUTPUT_FILENAME = "./context/satirical/satirical_plot.png"
+
 def load_statistics_from_json(filename):
     with open(filename, "r") as f:
         return json.load(f)
@@ -29,6 +32,5 @@ def plot_similarity_statistics(statistics, output_filename="cosine_similarity_pl
     plt.close()
 
 # Example usage
-statistics_file = "similarity_statistics.json"
-statistics = load_statistics_from_json(statistics_file)
-plot_similarity_statistics(statistics)
+statistics = load_statistics_from_json(FILENAME)
+plot_similarity_statistics(statistics, output_filename=OUTPUT_FILENAME)
