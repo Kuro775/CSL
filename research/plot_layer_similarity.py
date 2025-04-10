@@ -2,8 +2,8 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
-FILENAME = "./context/satirical/satirical_statistics.json"
-OUTPUT_FILENAME = "./context/satirical/satirical_plot.png"
+FILENAME = "./context/safe2/safe2_statistics.json"
+OUTPUT_FILENAME = "./context/safe2/safe2_plot.png"
 
 def load_statistics_from_json(filename):
     with open(filename, "r") as f:

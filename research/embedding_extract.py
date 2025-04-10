@@ -5,8 +5,8 @@ import csv
 from transformers import AutoModel, AutoTokenizer
 import random
 
-FILENAME = "satirical.csv"
-OUTPUT_FILENAME = "context/satirical/satirical_embeddings.json"
+FILENAME = "safe.csv"
+OUTPUT_FILENAME = "context/safe2/safe2_embeddings.json"
 
 def get_last_token_embeddings(model_name, prompts):
     # Load model and tokenizer
@@ -34,12 +34,12 @@ def get_last_token_embeddings(model_name, prompts):
     
     return embeddings_list
 
-def load_prompts_from_csv(filename, sample_size=None):
+def load_prompts_from_csv(filename, sample_size=None, column_name = "input"):
     prompts = []
     with open(filename, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            prompts.append(row['input'])
+            prompts.append(row[column_name])
     
     if sample_size:
         # Return a random sample of the prompts if a sample size is provided
@@ -61,10 +61,10 @@ def save_embeddings_to_csv(embeddings, filename="embeddings.csv"):
     df.to_csv(filename, index=False)
 
 model_name = "meta-llama/Meta-Llama-2-7b-hf"
-prompts = load_prompts_from_csv(FILENAME, sample_size=70)
+prompts = load_prompts_from_csv(FILENAME, sample_size=70, column_name="safe2")
 
 embeddings = get_last_token_embeddings(model_name, prompts)
 
 # Save to files
-save_embeddings_to_json(embeddings, filename=OUTPUT_FILENAME)
+save_embeddings_to_json(embeddings, filename=OUTPUT_FILENAME,)
 # save_embeddings_to_csv(embeddings, filename=OUTPUT_FILENAME)

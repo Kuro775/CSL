@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from itertools import combinations
 
-FILENAME = "./context/satirical/satirical_embeddings.json"
-OUTPUT_FILENAME = "./context/satirical/satirical_similarities.json"
+FILENAME = "./context/safe2/safe2_embeddings.json"
+OUTPUT_FILENAME = "./context/safe2/safe2_similarities.json"
 
 def load_embeddings_from_json(filename):
     with open(filename, "r") as f:

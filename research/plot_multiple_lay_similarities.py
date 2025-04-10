@@ -29,6 +29,7 @@ def plot_multiple_statistics(statistics_dict, output_filename="multiple_stats_pl
     plt.xlabel("Layer")
     plt.ylabel("Value")
     plt.title("Comparison of Multiple Statistics Across Layers")
+    plt.ylim(0,1.1)
     plt.legend()
     plt.grid(True)
     plt.savefig(output_filename)
@@ -37,12 +38,16 @@ def plot_multiple_statistics(statistics_dict, output_filename="multiple_stats_pl
 
 # Example usage:
 # Load separate statistics files (make sure these JSON files exist in your working directory)
-cosine_stats = load_statistics_from_json("cosine_similarity_statistics.json")
-other_stats  = load_statistics_from_json("other_similarity_statistics.json")
+cultural_stats = load_statistics_from_json("./context/cultural/cultural_statistics.json")
+imaginary_stats = load_statistics_from_json("./context/imaginary/imaginary_statistics.json")
+research_stats = load_statistics_from_json("./context/research/research_statistics.json")
+satirical_stats = load_statistics_from_json("./context/satirical/satirical_statistics.json")
 
 stats_data = {
-    "Cosine Similarity": cosine_stats,
-    "Other Similarity": other_stats
+    "Cultural": cultural_stats,
+    "Imaginary": imaginary_stats,
+    "Research": research_stats,
+    "Satirical": satirical_stats,
 }
 
 plot_multiple_statistics(stats_data, output_filename="multi_dataset_plot.png")

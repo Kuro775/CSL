@@ -2,8 +2,8 @@ import json
 import numpy as np
 import scipy.stats as stats
 
-FILENAME = "./context/satirical/satirical_similarities.json"
-OUTPUT_FILENAME = "./context/satirical/satirical_statistics.json"
+FILENAME = "./context/safe2/safe2_similarities.json"
+OUTPUT_FILENAME = "./context/safe2/safe2_statistics.json"
 
 def load_similarities_from_json(filename):
     with open(filename, "r") as f:
