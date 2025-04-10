@@ -30,12 +30,17 @@ def get_last_token_embeddings(model_name, prompts):
     
     return embeddings_list
 
-def load_prompts_from_csv(filename):
+def load_prompts_from_csv(filename, sample_size=None):
     prompts = []
     with open(filename, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             prompts.append(row['prompt'])
+    
+    if sample_size:
+        # Return a random sample of the prompts if a sample size is provided
+        return random.sample(prompts, min(sample_size, len(prompts)))
+    
     return prompts
 
 def save_embeddings_to_json(embeddings, filename="embeddings.json"):
