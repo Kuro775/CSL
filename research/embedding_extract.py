@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import csv
 from transformers import AutoModel, AutoTokenizer
+import random
 
 def get_last_token_embeddings(model_name, prompts):
     # Load model and tokenizer
