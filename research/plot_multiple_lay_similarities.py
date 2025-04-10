@@ -5,25 +5,30 @@ def load_statistics_from_json(filename):
     with open(filename, "r") as f:
         return json.load(f)
 
-def plot_multiple_stats_single_file(statistics, stat_keys=["mean", "median"], output_filename="multiple_stats_single_file_plot.png"):
+def plot_multiple_statistics(statistics_dict, output_filename="multiple_stats_plot.png"):
     """
-    statistics: a list of dictionaries, each containing at least 'layer' and the keys to plot
-    stat_keys: list of statistic keys to plot (e.g., "mean", "median")
+    statistics_dict is expected to be a dictionary where:
+      key: a label for the statistic (e.g., 'Cosine Similarity')
+      value: a list of dictionaries for that statistic with keys such as 'layer', 'mean', 
+             and optionally 'confidence_interval'
     """
-    layers = [stat["layer"] for stat in statistics]
     plt.figure(figsize=(10, 5))
     
-    # Define a list of markers or colors for variety
-    markers = ["o", "s", "D", "^", "v"]
-    
-    for idx, key in enumerate(stat_keys):
-        # Extract values for the metric key
-        values = [round(stat.get(key, 0), 3) for stat in statistics]
-        plt.plot(layers, values, marker=markers[idx % len(markers)], linestyle='-', label=key.title())
+    for label, statistics in statistics_dict.items():
+        # Extract common x values
+        layers = [stat["layer"] for stat in statistics]
+        means = [round(stat["mean"], 3) for stat in statistics]
+        plt.plot(layers, means, marker='o', linestyle='-', label=f'{label} Mean')
+        
+        # Check if confidence interval is provided and plot it
+        if statistics and "confidence_interval" in statistics[0]:
+            lower_bounds = [round(stat["confidence_interval"][0], 3) for stat in statistics]
+            upper_bounds = [round(stat["confidence_interval"][1], 3) for stat in statistics]
+            plt.fill_between(layers, lower_bounds, upper_bounds, alpha=0.2, label=f'{label} 95% CI')
     
     plt.xlabel("Layer")
     plt.ylabel("Value")
-    plt.title("Multiple Statistics Across Layers")
+    plt.title("Comparison of Multiple Statistics Across Layers")
     plt.legend()
     plt.grid(True)
     plt.savefig(output_filename)
@@ -31,6 +36,13 @@ def plot_multiple_stats_single_file(statistics, stat_keys=["mean", "median"], ou
     print(f"Plot saved to {output_filename}")
 
 # Example usage:
-statistics = load_statistics_from_json("similarity_statistics.json")
-# Assuming the JSON contains keys "mean" and "median" for each layer
-plot_multiple_stats_single_file(statistics, stat_keys=["mean", "median"], output_filename="multi_metric_plot.png")
+# Load separate statistics files (make sure these JSON files exist in your working directory)
+cosine_stats = load_statistics_from_json("cosine_similarity_statistics.json")
+other_stats  = load_statistics_from_json("other_similarity_statistics.json")
+
+stats_data = {
+    "Cosine Similarity": cosine_stats,
+    "Other Similarity": other_stats
+}
+
+plot_multiple_statistics(stats_data, output_filename="multi_dataset_plot.png")
