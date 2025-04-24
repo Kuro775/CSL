@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from itertools import combinations
 
-FILENAME         = "./context/intersect/intersect_embeddings.json"
-OUTPUT_FILENAME  = "./context/intersect/intersect_similarities.json"
+FILENAME         = "./context/intersection/llama_32_3b_ins/intersect_embeddings.json"
+OUTPUT_FILENAME  = "./context/intersection/llama_32_3b_ins/intersect_similarities.json"
 
 def load_embeddings_from_json(filename):
     with open(filename, "r", encoding="utf-8") as f:
@@ -13,12 +13,12 @@ def load_embeddings_from_json(filename):
 def compute_context_cosine_similarities(embeddings_list):
     results = []
     for entry in embeddings_list:
-        prompt = entry["prompt"]
+        prompt = entry["prompts"]
         ctx_embs = entry["embeddings"]  # dict: context_name → [layer_embs…]
         contexts = list(ctx_embs.keys())
 
         prompt_result = {
-            "prompt": prompt,
+            "prompts": prompt,
             "context_similarities": []
         }
 

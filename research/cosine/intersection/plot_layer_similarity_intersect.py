@@ -1,8 +1,8 @@
 import json
 import matplotlib.pyplot as plt
 
-FILENAME        = "./context/intersect/intersect_similarities_statistics.json"
-OUTPUT_FILENAME = "./context/intersect/intersect_similarities_plot.png"
+FILENAME        = "./context/intersection/llama_32_3b_ins/intersect_statistics.json"
+OUTPUT_FILENAME = "./context/intersection/llama_32_3b_ins/intersect_similarities_plot.png"
 
 def load_statistics_from_json(filename):
     with open(filename, "r", encoding="utf-8") as f:
