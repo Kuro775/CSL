@@ -4,84 +4,89 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from scipy.spatial import ConvexHull
+from scipy.interpolate import splprep, splev
+from matplotlib.patches import Polygon
 
-def load_embeddings(filename):
-    with open(filename, "r") as f:
-        data = json.load(f)
-    return data
+def load_embeddings(fn):
+    with open(fn) as f:
+        return json.load(f)
 
-def extract_layer_embeddings(embeddings_data, layer_index=-1):
-    embedding_list = []
-    for entry in embeddings_data:
-        layer_embedding = entry["embeddings"][-1] if layer_index == -1 else entry["embeddings"][layer_index]
-        embedding_list.append(layer_embedding)
-    return np.array(embedding_list)
+def extract_layer_embeddings(data, layer_idx):
+    return np.array([
+        entry["embeddings"][layer_idx] if layer_idx >= 0 else entry["embeddings"][-1]
+        for entry in data
+    ])
 
-def visualize_multiple_embeddings_with_pca(file_paths, layer_index, output_filename):
-    all_embeddings = []
-    dataset_indices = []
-    dataset_labels = []
+def visualize_with_smooth_boundaries(file_paths, layer_idx, out_fn):
+    groups = [ extract_layer_embeddings(load_embeddings(fp), layer_idx)
+               for fp in file_paths ]
+    X = np.vstack(groups)
+    coords = PCA(n_components=2).fit_transform(X)
 
-    start_index = 0
-    for file_path in file_paths:
-        embeddings_data = load_embeddings(file_path)
-        embeddings = extract_layer_embeddings(embeddings_data, layer_index=layer_index)
-        num_points = embeddings.shape[0]
-        all_embeddings.append(embeddings)
-        dataset_indices.append((start_index, start_index + num_points))
-        start_index += num_points
-        label = os.path.splitext(os.path.basename(file_path))[0].replace('_embeddings', '')
-        dataset_labels.append(label)
+    cmap = plt.get_cmap("tab10")
+    fig, ax = plt.subplots(figsize=(10,8))
 
-    combined_embeddings = np.vstack(all_embeddings)
-    pca = PCA(n_components=2)
-    reduced_embeddings = pca.fit_transform(combined_embeddings)
+    start = 0
+    for i, pts in enumerate(groups):
+        n = pts.shape[0]
+        seg = coords[start:start+n]
+        color = cmap(i % 10)
+        label = os.path.basename(file_paths[i]).replace('_embeddings.json','')
 
-    plt.figure(figsize=(10, 8))
-    for (start, end), label in zip(dataset_indices, dataset_labels):
-        plt.scatter(reduced_embeddings[start:end, 0],
-                    reduced_embeddings[start:end, 1],
-                    alpha=0.7, label=label)
+        ax.scatter(seg[:,0], seg[:,1], s=20, color=color, alpha=0.6, label=label)
 
-    plt.title(f"PCA Visualization of Layer {layer_index}")
-    plt.xlabel("Principal Component 1")
-    plt.ylabel("Principal Component 2")
-    plt.grid(True)
-    plt.legend()
-    plt.savefig(output_filename)
-    plt.close()
-    print(f"Layer {layer_index} PCA visualization saved to {output_filename}")
+        if n >= 3:
+            hull = ConvexHull(seg)
+            hull_pts = seg[hull.vertices]
+            hull_pts = np.vstack([hull_pts, hull_pts[0]])
+
+            deltas = np.sqrt(((hull_pts[1:] - hull_pts[:-1])**2).sum(axis=1))
+            u = np.concatenate([[0], np.cumsum(deltas)])
+            u /= u[-1]
+            tck, _ = splprep([hull_pts[:,0], hull_pts[:,1]], u=u, s=0)
+            u_fine = np.linspace(0,1,200)
+            x_smooth, y_smooth = splev(u_fine, tck)
+
+            poly = Polygon(np.vstack([x_smooth, y_smooth]).T,
+                           closed=True,
+                           facecolor=color,
+                           edgecolor=color,
+                           alpha=0.2,
+                           linewidth=1.5)
+            ax.add_patch(poly)
+
+        start += n
+
+    ax.set_title(f"PCA Layer {layer_idx} with Smooth Boundaries")
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.legend(loc="best", fontsize="small")
+    ax.grid(True)
+    fig.savefig(out_fn, dpi=150)
+    plt.close(fig)
+    print(f"Saved {out_fn}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Visualize multiple embedding datasets using PCA for all layers."
-    )
-    parser.add_argument(
-        "dataset_names",
-        nargs="+",
-        help="List of dataset names (e.g., original satirical cultural research imaginary)."
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="pca_outputs",
-        help="Output directory to save PCA plots for each layer."
-    )
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dataset_names", nargs="+")
+    parser.add_argument("--output_dir", default="layer_smooth")
     args = parser.parse_args()
-    os.makedirs(args.output_dir, exist_ok=True)
 
-    file_paths = [
-        os.path.join(".", "context", "intersection", "mistral_7b_ins_v03", f"input_{name}_embeddings.json")
-        for name in args.dataset_names
+    os.makedirs(args.output_dir, exist_ok=True)
+    fps = [
+      os.path.join("context", "intersection", "gemma_2_9b_it",
+                   f"input_{n}_embeddings.json")
+      for n in args.dataset_names
     ]
 
-    # Assume the number of layers is obtained from the first file
-    sample_data = load_embeddings(file_paths[0])
-    num_layers = len(sample_data[0]["embeddings"])
+    sample = load_embeddings(fps[0])
+    num_layers = len(sample[0]["embeddings"])
+    needed_layers = [2, num_layers // 2, num_layers - 1]
+    for L in needed_layers:
+        out_path = os.path.join(args.output_dir, f"layer{L}_smooth.png")
+        visualize_with_smooth_boundaries(fps, L, out_path)
 
-    for layer_idx in range(num_layers):
-        output_file = os.path.join(args.output_dir, f"pca_layer_{layer_idx}.png")
-        visualize_multiple_embeddings_with_pca(file_paths, layer_idx, output_file)
+
 
 # python .\research\pca\visualize_multiple_embeddings_with_pca.py original satirical cultural research imaginary --output_dir context/intersection/gemma_2_2b_it/pca
