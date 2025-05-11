@@ -5,8 +5,11 @@ import csv
 from transformers import AutoModel, AutoTokenizer
 import random
 
-FILENAME = "safe.csv"
-OUTPUT_FILENAME = "context/safe2/safe2_embeddings.json"
+# model_list = ["google/gemma-2-9b-it", "meta-llama/Meta-Llama-2-7b-chat-hf", "meta-llama/Llama-3.2-3B-Instruct", "meta-llama/Llama-3.2-3B", "allenai/Llama-3.1-Tulu-3-8B", ""mistralai/Mistral-7B-Instruct-v0.2""]
+FILENAME = "data/safe.csv"
+MODELNAME = "google/gemma-2-9b-it"
+OUTPUT_DIR = "context/safe/gemma_2_9b_it"
+COLUMNS_TO_USE = ["safe1", "safe2"]
 
 def get_last_token_embeddings(model_name, prompts):
     # Load model and tokenizer
@@ -60,11 +63,11 @@ def save_embeddings_to_csv(embeddings, filename="embeddings.csv"):
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
 
-model_name = "meta-llama/Meta-Llama-2-7b-hf"
-prompts = load_prompts_from_csv(FILENAME, sample_size=70, column_name="safe2")
-
-embeddings = get_last_token_embeddings(model_name, prompts)
-
-# Save to files
-save_embeddings_to_json(embeddings, filename=OUTPUT_FILENAME,)
-# save_embeddings_to_csv(embeddings, filename=OUTPUT_FILENAME)
+for column in COLUMNS_TO_USE:
+    print(f"Processing column: {column}")
+    prompts = load_prompts_from_csv(FILENAME, column_name=column)
+    embeddings = get_last_token_embeddings(MODELNAME, prompts)
+    
+    output_filename = OUTPUT_DIR + f"{column}_embeddings.json"
+    save_embeddings_to_json(embeddings, filename=output_filename)
+    print(f"Saved embeddings to {output_filename}")
